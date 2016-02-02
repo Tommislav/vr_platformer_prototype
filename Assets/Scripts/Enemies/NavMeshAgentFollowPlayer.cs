@@ -13,6 +13,7 @@ public class NavMeshAgentFollowPlayer : MonoBehaviour {
 	void Start () {
 		_agent = GetComponent<NavMeshAgent>();
 		_agent.autoTraverseOffMeshLink = false;
+		_agent.updateRotation = false;
 
 		_player = GameObject.FindGameObjectWithTag("Player");
 		_countdown = 0;
@@ -21,24 +22,37 @@ public class NavMeshAgentFollowPlayer : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+		
+
 		if (!_isJumping) {
 			if (_agent.isOnOffMeshLink) {
-				Debug.Log("I am on an offMeshLink to " + _agent.nextOffMeshLinkData.endPos + ", valid: " + _agent.nextOffMeshLinkData.valid);
-				//_isJumping = true;
-				//_agent.Stop();
+				
+				
+				Vector3 targetPos = _agent.currentOffMeshLinkData.endPos;
+				targetPos.y += 0.75f;
 
-				//Vector3 targetPos = _agent.nextOffMeshLinkData.endPos;
-				//LeanTween.moveX(gameObject, targetPos.x, 1f).setDelay(0.5f).setEase(LeanTweenType.easeInOutSine);
-				//LeanTween.moveZ(gameObject, targetPos.z, 1f).setDelay(0.5f).setEase(LeanTweenType.easeInOutSine);
-				//LeanTween.moveY(gameObject, transform.position.y + 5f, 0.5f).setDelay(0.5f).setEase(LeanTweenType.easeOutSine);
-				//LeanTween.moveY(gameObject, targetPos.y, 0.5f).setDelay(1.5f).setEase(LeanTweenType.easeInSine);
-				//LeanTween.delayedCall(gameObject, 2f, () => {
-				//	_agent.Resume();
-				//	_isJumping = false;
-				//	_countdown = 0;
-				//});
+				if (targetPos.y < transform.position.y) {
+					_agent.autoTraverseOffMeshLink = true;
+					return; // falling don't need any jump behaviour
+				}
 
-				//return;
+				_agent.autoTraverseOffMeshLink = false;
+
+				_isJumping = true;
+				_agent.Stop();
+
+				LeanTween.moveX(gameObject, targetPos.x, 1f).setDelay(0.2f).setEase(LeanTweenType.easeInOutSine);
+				LeanTween.moveZ(gameObject, targetPos.z, 1f).setDelay(0.2f).setEase(LeanTweenType.easeInOutSine);
+				LeanTween.moveY(gameObject, transform.position.y + 5f, 0.5f).setDelay(0.2f).setEase(LeanTweenType.easeOutSine);
+				LeanTween.moveY(gameObject, targetPos.y, 0.3f).setDelay(1.2f).setEase(LeanTweenType.easeInSine);
+				LeanTween.delayedCall(gameObject, 1.3f, () => {
+					_agent.CompleteOffMeshLink();
+					_agent.Resume();
+					_isJumping = false;
+					_countdown = 0;
+				});
+
+				return;
 			}
 
 
