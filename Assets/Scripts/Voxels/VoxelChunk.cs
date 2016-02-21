@@ -7,15 +7,15 @@ public class VoxelChunk : MonoBehaviour {
 	private int[,,] Data;
 	private GameObject[,,] Blocks;
 
+	private int w = 15;
+	private float blockSize = 4f;
 
 	private void Awake() {
 		
-		int w = 15;
 
 		Data = new int[w, w, w];
 		Blocks = new GameObject[w, w, w];
-		float blockSize = 4f;
-
+		
 		float off = -w * blockSize / 2f;
 		Vector3 offset = new Vector3(off, off, off);
 		
@@ -29,7 +29,7 @@ public class VoxelChunk : MonoBehaviour {
 					if (solid == 1) {
 						GameObject block = GameObject.Instantiate(Block);
 						block.transform.SetParent(transform);
-						block.transform.localPosition = new Vector3(x, y, z) * blockSize + offset;
+						block.transform.localPosition = new Vector3(x, -y, z) * blockSize;
 
 						Blocks[z, y, x] = block;
 					}
@@ -39,14 +39,30 @@ public class VoxelChunk : MonoBehaviour {
 		}
 	}
 
+	public Vector3 GetTileFromPos(Vector3 pos) {
+		int x = Mathf.RoundToInt(pos.x / blockSize);
+		int y = -Mathf.RoundToInt(pos.y / blockSize);
+		int z = Mathf.RoundToInt(pos.z / blockSize);
+		return new Vector3(x, y, z);
+	}
+
+	public void RemoveTile(int x, int y, int z) {
+		if (x >= 0 && x < w && y >= 0 && y < w && z >= 0 && z < w) {
+			if (Data[z, y, x] == 1) {
+				Data[z, y, x] = 0;
+				Blocks[z, y, x].SetActive(false);
+			}
+		}
+	}
+
 	public void Explode(Vector3 pos) {
 		int w = 15;
 		float blockSize = 4f;
 		float offset = -w * blockSize / 2f;
 
-		int x = Mathf.FloorToInt((pos.x - offset) / blockSize);
-		int y = Mathf.FloorToInt((pos.y - offset) / blockSize);
-		int z = Mathf.FloorToInt((pos.z - offset) / blockSize);
+		int x = Mathf.FloorToInt((pos.x) / blockSize);
+		int y = Mathf.FloorToInt((pos.y) / blockSize);
+		int z = Mathf.FloorToInt((pos.z) / blockSize);
 
 		Debug.Log("Explode at coords " + x + "," + y + "," + z);
 
