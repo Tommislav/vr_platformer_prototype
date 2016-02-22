@@ -5,6 +5,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour {
 
 	public GameObject ShadowPrefab;
+	public BombScript BombInstance;
 
 	public float moveScaler = 10f;
 	public float jumpStr = 500f;
@@ -116,6 +117,10 @@ public class PlayerController : MonoBehaviour {
 			_jumpBtnDown = false;
 		}
 
+		if (Input.GetButtonDown("Fire2")) {
+			// BOMB
+			BombInstance.PlaceBombAtPos(transform.position);
+		}
 
 		_rb.velocity = new Vector3(vX, vY, vZ);
 

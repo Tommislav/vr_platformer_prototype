@@ -20,11 +20,15 @@ public class VoxelChunk : MonoBehaviour {
 		Vector3 offset = new Vector3(off, off, off);
 		
 		for (int z=0; z< w; z++) {
-			for (int y = 0; y < w; y++) {
-				for (int x = 0; x < w; x++) {
+			for (int x = 0; x < w; x++) {
 
-					float rnd = Random.Range(0f, 1f);
-					int solid = rnd < 0.2f ? 1 : 0;
+				int h = Mathf.Max(x + z / 2, 1);
+
+				for (int y = 0; y < w; y++) {
+
+					int solid = 1;
+
+					//int solid = w - y < h ? 1 : 0;
 					Data[z, y, x] = solid;
 					if (solid == 1) {
 						GameObject block = GameObject.Instantiate(Block);
@@ -55,22 +59,37 @@ public class VoxelChunk : MonoBehaviour {
 		}
 	}
 
-	public void Explode(Vector3 pos) {
-		int w = 15;
-		float blockSize = 4f;
-		float offset = -w * blockSize / 2f;
+	public void Explode(Vector3 pos, int rad) {
 
-		int x = Mathf.FloorToInt((pos.x) / blockSize);
-		int y = Mathf.FloorToInt((pos.y) / blockSize);
-		int z = Mathf.FloorToInt((pos.z) / blockSize);
+		Vector3 origin = GetTileFromPos(pos);
+		rad++;
+		int minX = Mathf.Clamp((int)origin.x - rad, 0, w);
+		int maxX = Mathf.Clamp((int)origin.x + rad, 0, w);
+		int minY = Mathf.Clamp((int)origin.y - rad, 0, w);
+		int maxY = Mathf.Clamp((int)origin.y + rad, 0, w);
+		int minZ = Mathf.Clamp((int)origin.z - rad, 0, w);
+		int maxZ = Mathf.Clamp((int)origin.z + rad, 0, w);
 
-		Debug.Log("Explode at coords " + x + "," + y + "," + z);
+		rad--;
 
-		RemoveBlock(x - 1, y, z);
-		RemoveBlock(x + 1, y, z);
-		RemoveBlock(x, y, z - 1);
-		RemoveBlock(x, y, z + 1);
-		RemoveBlock(x, y + 1, z);
+		float explosionLength = rad * blockSize;
+		for (int z = minZ; z < maxZ; z++) {
+			for (int y = minY; y < maxY; y++) {
+				for (int x = minX; x < maxX; x++) {
+					if (Data[z, y, x] == 1) {
+						GameObject block = Blocks[z, y, x];
+						float len = (pos - block.transform.position).magnitude;
+						if (len < explosionLength) {
+							// boom
+							Data[z, y, x] = 0;
+							block.SetActive(false);
+						}
+					}
+				}
+			}
+		}
+
+
 	}
 
 	private void RemoveBlock(int x, int y, int z) {
